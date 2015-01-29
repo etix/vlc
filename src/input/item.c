@@ -999,7 +999,7 @@ input_item_t *input_item_Copy( input_item_t *p_input )
 
 struct item_type_entry
 {
-    const char psz_scheme[7];
+    const char psz_scheme[8];
     uint8_t    i_type;
     bool       b_net;
 };
@@ -1044,6 +1044,7 @@ static int GuessType( const input_item_t *p_item, bool *p_net )
         { "jack",   ITEM_TYPE_CARD, false },
         { "linsys", ITEM_TYPE_CARD, false },
         { "live",   ITEM_TYPE_STREAM, true }, /* livedotcom */
+        { "magnet", ITEM_TYPE_STREAM, true },
         { "mms",    ITEM_TYPE_STREAM, true },
         { "mtp",    ITEM_TYPE_DISC, false },
         { "nfs",    ITEM_TYPE_FILE, true },
@@ -1064,6 +1065,7 @@ static int GuessType( const input_item_t *p_item, bool *p_net )
         { "svcd",   ITEM_TYPE_DISC, false },
         { "tcp",    ITEM_TYPE_STREAM, true },
         { "terres", ITEM_TYPE_CARD, false }, /* terrestrial */
+        { "torrent",ITEM_TYPE_STREAM, true },
         { "udp",    ITEM_TYPE_STREAM, true },  /* udplite too */
         { "unsv",   ITEM_TYPE_STREAM, true },
         { "usdigi", ITEM_TYPE_CARD, false }, /* usdigital */
