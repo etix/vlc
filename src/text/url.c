@@ -145,6 +145,17 @@ char *vlc_path2uri (const char *path, const char *scheme)
 
     char *buf;
 
+    if (scheme == NULL && !strncmp (path, "magnet:?", 8)) {
+        char hash_type[16];
+        char hash[64];
+
+        if (sscanf(path + 8, "xt=urn:%15[a-z]:%63[a-zA-Z0-9]", hash_type, hash) == 2) {
+            if (asprintf (&buf, "%s://%s", "magnet", path) == -1)
+                buf = NULL;
+            return buf;
+        }
+    }
+
 #ifdef __OS2__
     char p[strlen (path) + 1];
 
