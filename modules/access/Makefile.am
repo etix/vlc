@@ -29,6 +29,13 @@ access_LTLIBRARIES += libfilesystem_plugin.la
 libidummy_plugin_la_SOURCES = access/idummy.c
 access_LTLIBRARIES += libidummy_plugin.la
 
+libaccess_torrent_plugin_la_SOURCES = access/torrent/access.cpp access/torrent/torrent.cpp
+libaccess_torrent_plugin_la_CXXFLAGS = $(AM_CXXFLAGS) $(TORRENT_CFLAGS)
+libaccess_torrent_plugin_la_LIBADD = $(AM_LIBADD) $(TORRENT_LIBS)
+libaccess_torrent_plugin_la_LDFLAGS = $(AM_LDFLAGS) -rpath '$(accessdir)'
+access_LTLIBRARIES += $(LTLIBaccess_torrent)
+EXTRA_LTLIBRARIES += libaccess_torrent_plugin.la
+
 libimem_plugin_la_SOURCES = access/imem-access.c
 libimem_plugin_la_LIBADD = $(LIBM)
 access_LTLIBRARIES += libimem_plugin.la

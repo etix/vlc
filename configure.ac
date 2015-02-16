@@ -1622,6 +1622,18 @@ dnl
 PKG_ENABLE_MODULES_VLC([ARCHIVE], [access_archive], [libarchive >= 3.1.0], (libarchive support), [auto])
 
 dnl
+dnl libtorrent
+dnl
+AC_ARG_ENABLE(torrent,
+  [AS_HELP_STRING([--enable-torrent],
+    [enable the support of torrent files and magnet links (default disabled)])])
+AS_IF([test "$HAVE_CXX11" = "1" -a "${enable_torrent}" = "yes"], [
+  PKG_CHECK_MODULES(TORRENT, libtorrent-rasterbar, [
+    VLC_ADD_PLUGIN([access_torrent])
+  ], [ AC_MSG_WARN([${TORRENT_PKG_ERRORS}.]) ])
+])
+
+dnl
 dnl  live555 input
 dnl
 AC_ARG_ENABLE(live555,
