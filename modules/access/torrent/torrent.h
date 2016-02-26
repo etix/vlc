@@ -96,6 +96,7 @@ class TorrentAccess
 
         static int ParseURI(const std::string& uri, lt::add_torrent_params& params);
         int RetrieveTorrentMetadata();
+        const int NumFiles() const;
         int StartDownload(int file_at);
         void ReadNextPiece(Piece& piece, bool& eof);
         void SelectPieces(uint64_t offset);

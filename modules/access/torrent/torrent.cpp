@@ -112,6 +112,14 @@ int TorrentAccess::ParseURI(const std::string& uri, lt::add_torrent_params& para
     return VLC_SUCCESS;
 }
 
+const int TorrentAccess::NumFiles() const
+{
+    assert(has_torrent_metadata());
+
+    const auto& metadata = torrent_metadata();
+    return metadata.num_files();
+}
+
 int TorrentAccess::RetrieveTorrentMetadata()
 {
     lt::error_code ec;

@@ -108,6 +108,9 @@ static int open(access_t* p_access)
         // This is a magnet link, first we need to generate the torrent file.
         if (torrent.RetrieveTorrentMetadata() != VLC_SUCCESS)
             return VLC_EGENERIC;
+    if (file_at+1 > torrent.NumFiles()) {
+        msg_Err(p_access, "Invalid file position %d", file_at);
+        file_at = -1;
     }
     if (file_at < 0) {
         // Browse the torrent metadata and generate a playlist with the files in it.
