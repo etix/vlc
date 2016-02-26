@@ -33,7 +33,7 @@
 
 static int Open(vlc_object_t*);
 static void Close(vlc_object_t*);
-static int ReadDir(access_t*, input_item_node_t*);
+static input_item_t* ReadDir(access_t*);
 static int Control(access_t*, int, va_list);
 static int Seek(access_t*, uint64_t);
 static block_t* Block(access_t*);
@@ -41,6 +41,7 @@ static block_t* Block(access_t*);
 struct access_sys_t
 {
     TorrentAccess torrent;
+    int readdir_idx;
 };
 
 /*****************************************************************************
@@ -97,7 +98,7 @@ static int open(access_t* p_access)
     if (dir == nullptr)
         return VLC_EGENERIC;
 
-    p_access->p_sys = new access_sys_t{{p_access}};
+    p_access->p_sys = new access_sys_t{{p_access}, 0};
     auto& torrent = p_access->p_sys->torrent;
     auto file_at = var_InheritInteger(p_access, "torrent-file-index");
 
@@ -108,6 +109,7 @@ static int open(access_t* p_access)
         // This is a magnet link, first we need to generate the torrent file.
         if (torrent.RetrieveTorrentMetadata() != VLC_SUCCESS)
             return VLC_EGENERIC;
+    }
     if (file_at+1 > torrent.NumFiles()) {
         msg_Err(p_access, "Invalid file position %d", file_at);
         file_at = -1;
@@ -158,31 +160,29 @@ static void Close(vlc_object_t* p_this)
  * Callbacks
  *****************************************************************************/
 
-static int ReadDir(access_t* p_access, input_item_node_t* p_node)
+static input_item_t* ReadDir(access_t* p_access)
 {
+    input_item_t *p_item = NULL;
     using ItemsHeap = std::map<uint64_t, input_item_t*>;
 
     const auto& torrent = p_access->p_sys->torrent;
     const auto& metadata = torrent.torrent_metadata();
     const auto& files = metadata.files();
 
-    ItemsHeap items;
-    for (auto i = 0; i < metadata.num_files(); ++i) {
-        const auto f = metadata.file_at(i);
+    for ( ; !p_item && p_access->p_sys->readdir_idx < metadata.num_files(); p_access->p_sys->readdir_idx++)
+    {
+        const auto f = metadata.file_at(p_access->p_sys->readdir_idx);
         const auto psz_uri = torrent.uri().c_str();
-        const auto psz_name = files.file_name(i);
-        const auto psz_option = "torrent-file-index=" + std::to_string(i);
+        const auto psz_name = files.file_name(p_access->p_sys->readdir_idx);
+        const auto psz_option = "torrent-file-index=" + std::to_string(p_access->p_sys->readdir_idx);
 
-        auto p_item = input_item_New(psz_uri, psz_name.c_str());
+        p_item = input_item_New(psz_uri, psz_name.c_str());
+        if (!p_item)
+            return NULL;
         input_item_AddOption(p_item, psz_option.c_str(), VLC_INPUT_OPTION_TRUSTED);
-        items[f.size] = p_item;
     }
-    std::for_each(items.rbegin(), items.rend(), [p_node](ItemsHeap::value_type& p) {
-        input_item_node_AppendItem(p_node, p.second);
-        input_item_Release(p.second);
-    });
 
-    return VLC_SUCCESS;
+    return p_item;
 }
 
 static int Control(access_t* p_access, int i_query, va_list args)
@@ -229,7 +229,6 @@ static block_t* Block(access_t* p_access)
     p_access->info.b_eof = eof;
     if (eof || p.data == nullptr)
         return nullptr;
-    p_access->info.i_pos += p.length;
     return p.data.release();
 }
 
@@ -237,6 +236,5 @@ static int Seek(access_t *p_access, uint64_t i_pos)
 {
     auto& torrent = p_access->p_sys->torrent;
     torrent.SelectPieces(i_pos);
-    p_access->info.i_pos = i_pos;
     return VLC_SUCCESS;
 }

@@ -97,7 +97,7 @@ int TorrentAccess::ParseURI(const std::string& uri, lt::add_torrent_params& para
     lt::error_code ec;
 
     const auto prefix = std::string{"magnet:?"};
-    const auto uri_decoded = std::string{decode_URI_duplicate(uri.c_str())};
+    const auto uri_decoded = std::string{vlc_uri_decode_duplicate(uri.c_str())};
 
     if (!uri_decoded.compare(0, prefix.size(), prefix)) {
         lt::parse_magnet_uri(uri_decoded, params, ec);
