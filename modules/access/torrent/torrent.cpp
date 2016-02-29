@@ -399,10 +399,17 @@ void TorrentAccess::ReadNextPiece(Piece& piece, bool& eof)
         return;
     }
     auto& next_piece = queue_.pieces.front();
-    if (!next_piece.requested) {
-        handle_.set_piece_deadline(next_piece.id, 0, lth::alert_when_available);
-        next_piece.requested = true;
-        msg_Dbg(access_, "Piece requested: %d", next_piece.id);
+
+    auto i = 0;
+    for (std::deque<Piece>::iterator it = queue_.pieces.begin(); it!=queue_.pieces.end() && i < 10; ++it)
+    {
+        auto& p = *it;
+        if (!p.requested) {
+            handle_.set_piece_deadline(p.id, 0, lth::alert_when_available);
+            p.requested = true;
+            msg_Dbg(access_, "Piece requested: %d", p.id);
+        }
+        i++;
     }
     if (!queue_.cond.wait_for(lock, timeout, [&next_piece]{ return next_piece.data != nullptr; }))
         return;
